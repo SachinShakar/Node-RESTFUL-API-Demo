@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
 const Order = require('../models/order');
+const Product = require('../models/product');
 
 router.get('/', (req, res, next) => {
 	Order.find().populate('productId', '_id name price').exec()
@@ -34,37 +35,65 @@ router.get('/', (req, res, next) => {
 });
 
 router.post('/', (req, res, next) => {
-	const order = new Order({
-		_id : new mongoose.Types.ObjectId(),
-		productId : req.body.productId,
-		quantity : req.body.qty
-	});
 
-	order.save()
-	.then(result => {
-		console.log(result);
-		res.status(201).json({
-			message : "Order saved",
-			_id : result._id,
-			productId : result.productId,
-			quantity: result.quantity,
-			request : {
-				type : 'GET',
-				url : "http://localhost:3000/orders/" + result._id
-			}
-		});
+	Product.findById(req.body.productId).exec()
+	.then( result => {
+		if(result == null){
+			console.log("Prodct not present");
+			res.status(404).json({
+				message : "Order can not be inserted"
+			});
+
+		}
+
+		else{
+			console.log("Product exists");
+
+			const order = new Order({
+				_id : new mongoose.Types.ObjectId(),
+				productId : req.body.productId,
+				quantity : req.body.qty
+			});
+
+			order.save()
+			.then(result => {
+				console.log(result);
+				res.status(201).json({
+					message : "Order saved",
+					_id : result._id,
+					productId : result.productId,
+					quantity: result.quantity,
+					request : {
+						type : 'GET',
+						url : "http://localhost:3000/orders/" + result._id
+					}
+				});
+			})
+			.catch(err => {
+				console.log(err);
+				res.status(500).json(err);
+			});
+
+		}
+			
+
+
 	})
 	.catch(err => {
 		console.log(err);
-		response.status(500).json(err);
+		res.status(500).json(err);
 	});
+	
+
+	
 });
 
 
 router.get('/:orderId', (req, res, next) => {
 	const id = req.params.orderId;
 
-	Order.findById(id).exec()
+	Order.findById(id).populate("productId")
+	.exec()
 	.then(result=>{
 
 		res.status(200).json({

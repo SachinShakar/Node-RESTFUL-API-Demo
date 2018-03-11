@@ -12,10 +12,10 @@ const productRoutes = require('./api/routes/products');
 
 const orderRoutes = require('./api/routes/orders');
 
+const userRoutes = require('./api/routes/users');
+
 
 mongoose.connect('mongodb://admin:admin@node-project-shard-00-00-ncdai.mongodb.net:27017,node-project-shard-00-01-ncdai.mongodb.net:27017,node-project-shard-00-02-ncdai.mongodb.net:27017/test?ssl=true&replicaSet=node-project-shard-0&authSource=admin');
-
-
 
 app.use(morgan('dev'));
 
@@ -41,6 +41,8 @@ app.use('/uploads', express.static('uploads'));
 app.use('/products', productRoutes);
 
 app.use('/orders', orderRoutes);
+
+app.use('/users', userRoutes);
 
 
 
